@@ -270,69 +270,79 @@ class Jogo:
             if event.type == QUIT:
                 self.encerrar()
 
-            if event.type != KEYDOWN:
-                continue
+            if event.type == KEYDOWN:
+                self.processar_tecla(event.key)
 
-            if event.key in (K_q, K_ESCAPE):
-                self.encerrar()
+    def processar_tecla(self, tecla):
+        if tecla in (K_q, K_ESCAPE):
+            self.encerrar()
 
-            if self.menu_ativo:
-                if event.key in (K_RETURN, K_SPACE):
-                    self.menu_ativo = False
-                continue
+        if self.menu_ativo:
+            if tecla in (K_RETURN, K_SPACE):
+                self.menu_ativo = False
+            return
 
-            if self.game_over:
-                if event.key == K_r:
-                    self.reiniciar()
-                continue
+        if self.game_over:
+            if tecla == K_r:
+                self.reiniciar()
+            return
 
-            if event.key == K_p:
-                self.pausado = not self.pausado
-                continue
+        if tecla == K_p:
+            self.pausado = not self.pausado
+            return
 
-            if self.pausado:
-                continue
+        if self.pausado:
+            return
 
-            controles = {
-                K_UP: UP,
-                K_DOWN: DOWN,
-                K_RIGHT: RIGHT,
-                K_LEFT: LEFT,
-            }
-            if event.key in controles:
-                self.cobra.mudar_direcao(controles[event.key])
+        controles = {
+            K_UP: UP,
+            K_DOWN: DOWN,
+            K_RIGHT: RIGHT,
+            K_LEFT: LEFT,
+        }
+        if tecla in controles:
+            self.cobra.mudar_direcao(controles[tecla])
+
+    def houve_colisao(self):
+        return (
+            self.cobra.colidiu_com_corpo()
+            or self.cobra.colidiu_com_borda()
+            or self.cobra.cabeca["pos"] in self.obstaculos
+        )
+
+    def processar_coleta(self):
+        if self.cobra.cabeca["cor"] == self.maca.cor:
+            if self.cobra.retirar_do_inicio() is not None:
+                self.pontuacao -= 1
+        else:
+            self.cobra.adicionar_ao_final(self.maca.cor)
+            self.pontuacao += 2
+
+        self.configurar_fase()
+        self.maca.gerar(
+            self.cobra,
+            self.obstaculos,
+            self.fase_atual["cores_maca"],
+        )
+
+    def atualizar_recorde(self):
+        if self.pontuacao > self.recorde:
+            self.recorde = self.pontuacao
+            self.salvar_recorde()
 
     def atualizar(self):
         if self.menu_ativo or self.pausado or self.game_over:
             return
 
         self.cobra.mover()
-        if (
-            self.cobra.colidiu_com_corpo()
-            or self.cobra.colidiu_com_borda()
-            or self.cobra.cabeca["pos"] in self.obstaculos
-        ):
+        if self.houve_colisao():
             self.game_over = True
             return
 
         if self.cobra.cabeca["pos"] == self.maca.posicao:
-            if self.cobra.cabeca["cor"] == self.maca.cor:
-                if self.cobra.retirar_do_inicio() is not None:
-                    self.pontuacao -= 1
-            else:
-                self.cobra.adicionar_ao_final(self.maca.cor)
-                self.pontuacao += 2
+            self.processar_coleta()
 
-            self.configurar_fase()
-            self.maca.gerar(
-                self.cobra,
-                self.obstaculos,
-                self.fase_atual["cores_maca"],
-            )
-
-        if self.pontuacao > self.recorde:
-            self.recorde = self.pontuacao
-            self.salvar_recorde()
+        self.atualizar_recorde()
 
     def desenhar_menu(self):
         titulo = self.fonte_titulo.render(
