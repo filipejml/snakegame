@@ -8,14 +8,15 @@ cor coletada e ganha velocidade durante a partida.
 
 - Movimento da cobra pelas setas do teclado.
 - Geração de maçãs em posições aleatórias.
-- Sete cores possíveis para as maçãs.
+- Paletas de cores diferentes em cada fase.
 - Segmentos da cobra assumem a cor da maçã coletada.
 - Sistema de pontuação:
   - maçã com cor diferente da cabeça: adiciona 2 pontos e um segmento;
   - maçã com a mesma cor da cabeça: remove 1 ponto e um segmento, quando
     possível.
-- Aumento progressivo da velocidade conforme o tamanho da cobra.
-- Detecção de colisão com as bordas e com o próprio corpo.
+- Quatro fases explícitas, liberadas pela pontuação.
+- Velocidade e obstáculos diferentes em cada fase.
+- Detecção de colisão com as bordas, o próprio corpo e os obstáculos.
 - Tela de fim de jogo e reinício pela tecla `R`.
 - Recorde salvo localmente no arquivo `recorde.txt`.
 
@@ -73,6 +74,19 @@ No Linux ou macOS, caso necessário, use `python3` no lugar de `python`.
 
 A cobra não pode inverter diretamente para a direção oposta.
 
+## Fases
+
+| Pontuação | Fase | Velocidade | Obstáculos |
+|---:|---|---:|---:|
+| 0 | Jardim Neon | 5 | 0 |
+| 10 | Labirinto Solar | 7 | 6 |
+| 24 | Oceano Elétrico | 9 | 9 |
+| 40 | Caos Cromático | 12 | 14 |
+
+Cada fase possui uma paleta própria para as maçãs e uma cor específica para
+seus obstáculos. Ao mudar de fase, obstáculos que coincidiriam com a posição
+atual da cobra são descartados para evitar uma derrota injusta.
+
 ## Como a aplicação foi implementada
 
 Toda a lógica principal está em `Snake Game/Snake_Circle.py`.
@@ -89,9 +103,11 @@ Toda a lógica principal está em `Snake Game/Snake_Circle.py`.
    dos segmentos e redesenha a tela.
 7. Ao coletar uma maçã, sua cor é comparada com a cor da cabeça para decidir
    se a cobra cresce ou diminui.
-8. O tamanho da cobra define a quantidade de atualizações por segundo, de 5
-   até 12.
-9. Quando a pontuação supera o recorde, o novo valor é gravado imediatamente
+8. A pontuação seleciona uma fase em `FASES`, que define nome, velocidade,
+   paleta de cores e posições dos obstáculos.
+9. A maçã só pode surgir em células que não estejam ocupadas pela cobra ou
+   pelos obstáculos.
+10. Quando a pontuação supera o recorde, o novo valor é gravado imediatamente
    em `recorde.txt`. O caminho é calculado a partir do local do script,
    independentemente da pasta de execução.
 
@@ -109,7 +125,5 @@ O arquivo `recorde.txt` deve conter somente um número inteiro.
 
 ## Possíveis melhorias
 
-- Impedir que uma nova maçã apareça sobre a cobra.
-- Encerrar explicitamente o loop ao fechar a janela.
 - Separar a cobra, a maçã e o estado da partida em classes ou módulos.
 - Adicionar sons, menu inicial, pausa e testes automatizados.

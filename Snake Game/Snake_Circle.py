@@ -19,9 +19,59 @@ RIGHT = 1
 DOWN = 2
 LEFT = 3
 
+FASES = [
+    {
+        'nome': 'Jardim Neon',
+        'pontuacao_minima': 0,
+        'velocidade': 5,
+        'cores_maca': [(255, 80, 80), (80, 255, 140), (80, 180, 255)],
+        'cor_obstaculo': (90, 90, 120),
+        'obstaculos': []
+    },
+    {
+        'nome': 'Labirinto Solar',
+        'pontuacao_minima': 10,
+        'velocidade': 7,
+        'cores_maca': [(255, 220, 40), (255, 130, 30), (255, 70, 160)],
+        'cor_obstaculo': (255, 150, 40),
+        'obstaculos': [(320, 140), (320, 160), (320, 180),
+                       (320, 300), (320, 320), (320, 340)]
+    },
+    {
+        'nome': 'Oceano Elétrico',
+        'pontuacao_minima': 24,
+        'velocidade': 9,
+        'cores_maca': [(30, 220, 255), (50, 110, 255), (180, 80, 255)],
+        'cor_obstaculo': (40, 120, 210),
+        'obstaculos': [(180, 160), (200, 160), (220, 160),
+                       (400, 300), (420, 300), (440, 300),
+                       (300, 220), (320, 220), (340, 220)]
+    },
+    {
+        'nome': 'Caos Cromático',
+        'pontuacao_minima': 40,
+        'velocidade': 12,
+        'cores_maca': [(255, 40, 40), (40, 255, 80), (40, 120, 255),
+                       (255, 230, 30), (220, 50, 255), (30, 255, 240)],
+        'cor_obstaculo': (210, 60, 210),
+        'obstaculos': [(160, 140), (160, 160), (160, 180),
+                       (460, 280), (460, 300), (460, 320),
+                       (280, 120), (300, 120), (320, 120), (340, 120),
+                       (280, 360), (300, 360), (320, 360), (340, 360)]
+    }
+]
+
+def obter_fase(pontuacao):
+    fase = FASES[0]
+    for candidata in FASES:
+        if pontuacao >= candidata['pontuacao_minima']:
+            fase = candidata
+    return fase
+
 # Definindo uma posição aleatória livre para a maçã na tela
-def grid_random(cobra):
+def grid_random(cobra, obstaculos):
     posicoes_ocupadas = {segmento['pos'] for segmento in cobra}
+    posicoes_ocupadas.update(obstaculos)
     posicoes_livres = [
         (x, y)
         for x in range(20, 620, 20)
@@ -45,11 +95,14 @@ def retirar_do_inicio(cobra):
 cobra = deque([{'pos': (200, 200), 'cor': (255, 255, 255)}])
 raio_cobra = 10
 
+# Definindo a fase inicial
+fase_atual = obter_fase(0)
+obstaculos = list(fase_atual['obstaculos'])
+
 # Criando a maçã
-maca_pos = grid_random(cobra)
+maca_pos = grid_random(cobra, obstaculos)
 raio_maca = 10
-cores_maca = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (255, 255, 255)]
-maca_cor = random.choice(cores_maca)
+maca_cor = random.choice(fase_atual['cores_maca'])
 
 # Iniciando a cobra se movimentando para a esquerda
 direcao = LEFT
@@ -79,24 +132,18 @@ def desenhar_circulo(posicao, raio, cor):
 
 # Loop principal
 while True:
-    if len(cobra) <= 10:
-        velocidade = 5
-    elif 10 < len(cobra) <= 20:
-        velocidade = 6
-    elif 20 < len(cobra) <= 30:
-        velocidade = 7
-    elif 30 < len(cobra) <= 40:
-        velocidade = 8
-    elif 40 < len(cobra) <= 50:
-        velocidade = 9
-    elif 50 < len(cobra) <= 60:
-        velocidade = 10
-    elif 60 < len(cobra) <= 70:
-        velocidade = 11
-    else:
-        velocidade = 12
+    nova_fase = obter_fase(pontuacao)
+    if nova_fase is not fase_atual:
+        fase_atual = nova_fase
+        posicoes_cobra = {segmento['pos'] for segmento in cobra}
+        obstaculos = [
+            posicao for posicao in fase_atual['obstaculos']
+            if posicao not in posicoes_cobra
+        ]
+        maca_pos = grid_random(cobra, obstaculos)
+        maca_cor = random.choice(fase_atual['cores_maca'])
 
-    clock.tick(velocidade)
+    clock.tick(fase_atual['velocidade'])
 
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -120,7 +167,10 @@ while True:
             if game_over and event.key == K_r:
                 # Reiniciando o jogo
                 cobra = deque([{'pos': (200, 200), 'cor': (255, 255, 255)}])
-                maca_pos = grid_random(cobra)
+                fase_atual = obter_fase(0)
+                obstaculos = list(fase_atual['obstaculos'])
+                maca_pos = grid_random(cobra, obstaculos)
+                maca_cor = random.choice(fase_atual['cores_maca'])
                 direcao = LEFT
                 pontuacao = 0
                 game_over = False
@@ -135,8 +185,12 @@ while True:
         if cobra[0]['pos'][0] < 0 or cobra[0]['pos'][0] >= 640 or cobra[0]['pos'][1] < 0 or cobra[0]['pos'][1] >= 480:
             game_over = True
 
+        # Testando a colisão com os obstáculos da fase
+        if cobra[0]['pos'] in obstaculos:
+            game_over = True
+
         if colisao(cobra[0]['pos'], maca_pos):
-            maca_pos = grid_random(cobra)
+            maca_pos = grid_random(cobra, obstaculos)
 
             if cobra[0]['cor'] == maca_cor:
                 if len(cobra) > 1:
@@ -148,7 +202,7 @@ while True:
                 novo_segmento = {'pos': cobra[-1]['pos'], 'cor': maca_cor}
                 adicionar_ao_final(cobra, novo_segmento)
                 print("Cobra atualizada com acréscimo:", cobra)
-            maca_cor = random.choice(cores_maca)
+            maca_cor = random.choice(fase_atual['cores_maca'])
 
         # Movendo o corpo da cobra
         for i in range(len(cobra) - 1, 0, -1):
@@ -174,6 +228,13 @@ while True:
     tela.fill((0, 0, 0))
     desenhar_circulo(maca_pos, raio_maca, maca_cor)
 
+    for obstaculo in obstaculos:
+        pygame.draw.rect(
+            tela,
+            fase_atual['cor_obstaculo'],
+            (obstaculo[0] - 10, obstaculo[1] - 10, 20, 20)
+        )
+
     for segmento in cobra:
         desenhar_circulo(segmento['pos'], raio_cobra, segmento['cor'])
 
@@ -188,8 +249,14 @@ while True:
     # Exibindo a pontuação e o recorde na tela
     texto_pontuacao = fonte.render("Pontuação: " + str(pontuacao), True, (255, 255, 255))
     texto_recorde = fonte.render("Recorde: " + str(recorde), True, (255, 255, 255))
+    texto_fase = fonte.render(
+        fase_atual['nome'] + " | Velocidade: " + str(fase_atual['velocidade']),
+        True,
+        (255, 255, 255)
+    )
     tela.blit(texto_pontuacao, (10, 10))
     tela.blit(texto_recorde, (10, 40))
+    tela.blit(texto_fase, (250, 10))
 
     # Atualizando a tela
     pygame.display.update()
