@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import random
 import sys
+from pathlib import Path
 from random import randint
 
 # Inicializando o pygame
@@ -52,13 +53,14 @@ clock = pygame.time.Clock()
 pontuacao = 0
 recorde = 0
 fonte = pygame.font.SysFont("lexend", 24)
+CAMINHO_RECORDE = Path(__file__).resolve().parent.parent / "recorde.txt"
 
 # Estado do jogo
 game_over = False
 
 # Carregando o recorde do arquivo
 try:
-    with open("recorde.txt", "r") as arquivo:
+    with CAMINHO_RECORDE.open("r", encoding="utf-8") as arquivo:
         recorde = int(arquivo.read())
 except FileNotFoundError:
     pass
@@ -91,7 +93,7 @@ while True:
     for event in pygame.event.get():
         if event.type == QUIT:
             # Salvando o recorde no arquivo antes de sair
-            with open("recorde.txt", "w") as arquivo:
+            with CAMINHO_RECORDE.open("w", encoding="utf-8") as arquivo:
                 arquivo.write(str(recorde))
             pygame.quit()
             sys.exit()

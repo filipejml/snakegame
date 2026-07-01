@@ -53,8 +53,7 @@ python -m pip install pygame
 
 ## Execução
 
-Execute o jogo a partir da raiz do projeto para que o arquivo de recorde seja
-encontrado corretamente:
+Execute o jogo com:
 
 ```bash
 python "Snake Game/Snake_Circle.py"
@@ -90,7 +89,8 @@ Toda a lógica principal está em `Snake Game/Snake_Circle.py`.
 7. O tamanho da cobra define a quantidade de atualizações por segundo, de 5
    até 12.
 8. Quando a pontuação supera o recorde, o valor em memória é atualizado. Ao
-   fechar o jogo, ele é gravado em `recorde.txt`.
+   fechar o jogo, ele é gravado em `recorde.txt`. O caminho é calculado a
+   partir do local do script, independentemente da pasta de execução.
 
 ## Estrutura do projeto
 
@@ -108,7 +108,5 @@ O arquivo `recorde.txt` deve conter somente um número inteiro.
 
 - Impedir que uma nova maçã apareça sobre a cobra.
 - Encerrar explicitamente o loop ao fechar a janela.
-- Resolver o caminho do arquivo de recorde com base no local do script.
 - Separar a cobra, a maçã e o estado da partida em classes ou módulos.
 - Adicionar sons, menu inicial, pausa e testes automatizados.
-
