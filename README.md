@@ -43,7 +43,7 @@ cd snakegame
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install pygame
+python -m pip install -r requirements.txt
 ```
 
 ### Linux e macOS
@@ -51,7 +51,7 @@ python -m pip install pygame
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install pygame
+python -m pip install -r requirements.txt
 ```
 
 ## Execução
@@ -125,6 +125,7 @@ Toda a lógica está em `Snake Game/Snake_Circle.py`, organizada em três classe
 snakegame/
 ├── README.md
 ├── recorde.txt
+├── requirements.txt
 └── Snake Game/
     └── Snake_Circle.py
 ```
