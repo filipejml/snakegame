@@ -81,14 +81,16 @@ Toda a lógica principal está em `Snake Game/Snake_Circle.py`.
 2. A tela é organizada implicitamente em uma grade de 20 pixels.
 3. A cobra é representada por uma lista de dicionários. Cada segmento possui
    uma posição `(x, y)` e uma cor RGB.
-4. A função `grid_random()` escolhe uma nova posição para a maçã na grade.
-5. O loop principal processa o teclado, verifica colisões, atualiza a posição
+4. As operações FIFO ficam explícitas nas funções `adicionar_ao_final()` e
+   `retirar_do_inicio()`: os segmentos entram no fim e saem do início da fila.
+5. A função `grid_random()` escolhe uma nova posição livre para a maçã.
+6. O loop principal processa o teclado, verifica colisões, atualiza a posição
    dos segmentos e redesenha a tela.
-6. Ao coletar uma maçã, sua cor é comparada com a cor da cabeça para decidir
+7. Ao coletar uma maçã, sua cor é comparada com a cor da cabeça para decidir
    se a cobra cresce ou diminui.
-7. O tamanho da cobra define a quantidade de atualizações por segundo, de 5
+8. O tamanho da cobra define a quantidade de atualizações por segundo, de 5
    até 12.
-8. Quando a pontuação supera o recorde, o novo valor é gravado imediatamente
+9. Quando a pontuação supera o recorde, o novo valor é gravado imediatamente
    em `recorde.txt`. O caminho é calculado a partir do local do script,
    independentemente da pasta de execução.
 

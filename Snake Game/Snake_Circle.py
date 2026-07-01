@@ -33,6 +33,13 @@ def grid_random(cobra):
 def colisao(c1, c2):
     return c1 == c2
 
+# Operações da fila: elementos entram no fim e saem do início
+def adicionar_ao_final(cobra, segmento):
+    cobra.append(segmento)
+
+def retirar_do_inicio(cobra):
+    return cobra.pop(0)
+
 # Criando a cobra
 cobra = [{'pos': (200, 200), 'cor': (255, 255, 255)}]
 raio_cobra = 10
@@ -132,13 +139,13 @@ while True:
 
             if cobra[0]['cor'] == maca_cor:
                 if len(cobra) > 1:
-                    cobra.pop(0)
+                    retirar_do_inicio(cobra)
                     pontuacao -= 1
                     print("Cobra atualizada com decréscimo:", cobra)
             else:
                 pontuacao += 2
                 novo_segmento = {'pos': cobra[-1]['pos'], 'cor': maca_cor}
-                cobra.append(novo_segmento)
+                adicionar_ao_final(cobra, novo_segmento)
                 print("Cobra atualizada com acréscimo:", cobra)
             maca_cor = random.choice(cores_maca)
 
