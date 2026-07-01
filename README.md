@@ -16,6 +16,7 @@ cor coletada e ganha velocidade durante a partida.
     possível.
 - Quatro fases explícitas, liberadas pela pontuação.
 - Velocidade e obstáculos diferentes em cada fase.
+- Painel com fase, velocidade e efeito da próxima maçã.
 - Detecção de colisão com as bordas, o próprio corpo e os obstáculos.
 - Tela de fim de jogo e reinício pela tecla `R`.
 - Recorde salvo localmente no arquivo `recorde.txt`.

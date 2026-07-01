@@ -91,6 +91,13 @@ def adicionar_ao_final(cobra, segmento):
 def retirar_do_inicio(cobra):
     return cobra.popleft()
 
+def descrever_efeito_maca(cobra, maca_cor):
+    if cobra[0]['cor'] != maca_cor:
+        return "Adicionar no fim (+2 pontos)"
+    if len(cobra) > 1:
+        return "Retirar do início (-1 ponto)"
+    return "Sem efeito: tamanho mínimo"
+
 # Criando a cobra
 cobra = deque([{'pos': (200, 200), 'cor': (255, 255, 255)}])
 raio_cobra = 10
@@ -249,14 +256,20 @@ while True:
     # Exibindo a pontuação e o recorde na tela
     texto_pontuacao = fonte.render("Pontuação: " + str(pontuacao), True, (255, 255, 255))
     texto_recorde = fonte.render("Recorde: " + str(recorde), True, (255, 255, 255))
-    texto_fase = fonte.render(
-        fase_atual['nome'] + " | Velocidade: " + str(fase_atual['velocidade']),
+    texto_fase = fonte.render("Fase: " + fase_atual['nome'], True, (255, 255, 255))
+    texto_velocidade = fonte.render(
+        "Velocidade: " + str(fase_atual['velocidade']), True, (255, 255, 255)
+    )
+    texto_efeito = fonte.render(
+        "Próxima maçã: " + descrever_efeito_maca(cobra, maca_cor),
         True,
         (255, 255, 255)
     )
     tela.blit(texto_pontuacao, (10, 10))
     tela.blit(texto_recorde, (10, 40))
     tela.blit(texto_fase, (250, 10))
+    tela.blit(texto_velocidade, (250, 40))
+    tela.blit(texto_efeito, (10, 70))
 
     # Atualizando a tela
     pygame.display.update()
