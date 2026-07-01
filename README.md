@@ -107,8 +107,8 @@ Toda a lógica está em `Snake Game/Snake_Circle.py`, organizada em três classe
 7. As operações FIFO ficam explícitas nos métodos `adicionar_ao_final()` e
    `retirar_do_inicio()`: os segmentos entram no fim e saem do início da fila.
 8. O método `Maca.gerar()` escolhe uma nova posição livre para a maçã.
-9. O loop principal processa o teclado, verifica colisões, atualiza a posição
-   dos segmentos e redesenha a tela.
+9. O loop principal delega eventos, teclas, colisões, coleta, movimento,
+   recorde e renderização a métodos pequenos e específicos.
 10. Ao coletar uma maçã, sua cor é comparada com a cor da cabeça para decidir
    se a cobra cresce ou diminui.
 11. A pontuação seleciona uma fase em `FASES`, que define nome, velocidade,
