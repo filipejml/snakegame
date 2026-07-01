@@ -1,19 +1,29 @@
-import pygame
-from pygame.locals import *
 import random
 import sys
 from collections import deque
 from pathlib import Path
-from random import randint
 
-# Inicializando o pygame
-pygame.init()
+import pygame
+from pygame.locals import (
+    KEYDOWN,
+    K_DOWN,
+    K_ESCAPE,
+    K_LEFT,
+    K_p,
+    K_q,
+    K_r,
+    K_RETURN,
+    K_RIGHT,
+    K_SPACE,
+    K_UP,
+    QUIT,
+)
 
-# Criando a tela
-tela = pygame.display.set_mode((640, 480))
-pygame.display.set_caption("Snake Game")
 
-# Controle de posições
+LARGURA = 640
+ALTURA = 480
+TAMANHO_CELULA = 20
+
 UP = 0
 RIGHT = 1
 DOWN = 2
@@ -21,294 +31,396 @@ LEFT = 3
 
 FASES = [
     {
-        'nome': 'Jardim Neon',
-        'pontuacao_minima': 0,
-        'velocidade': 5,
-        'cores_maca': [(255, 80, 80), (80, 255, 140), (80, 180, 255)],
-        'cor_obstaculo': (90, 90, 120),
-        'obstaculos': []
+        "nome": "Jardim Neon",
+        "pontuacao_minima": 0,
+        "velocidade": 5,
+        "cores_maca": [(255, 80, 80), (80, 255, 140), (80, 180, 255)],
+        "cor_obstaculo": (90, 90, 120),
+        "obstaculos": [],
     },
     {
-        'nome': 'Labirinto Solar',
-        'pontuacao_minima': 10,
-        'velocidade': 7,
-        'cores_maca': [(255, 220, 40), (255, 130, 30), (255, 70, 160)],
-        'cor_obstaculo': (255, 150, 40),
-        'obstaculos': [(320, 140), (320, 160), (320, 180),
-                       (320, 300), (320, 320), (320, 340)]
+        "nome": "Labirinto Solar",
+        "pontuacao_minima": 10,
+        "velocidade": 7,
+        "cores_maca": [(255, 220, 40), (255, 130, 30), (255, 70, 160)],
+        "cor_obstaculo": (255, 150, 40),
+        "obstaculos": [
+            (320, 140),
+            (320, 160),
+            (320, 180),
+            (320, 300),
+            (320, 320),
+            (320, 340),
+        ],
     },
     {
-        'nome': 'Oceano Elétrico',
-        'pontuacao_minima': 24,
-        'velocidade': 9,
-        'cores_maca': [(30, 220, 255), (50, 110, 255), (180, 80, 255)],
-        'cor_obstaculo': (40, 120, 210),
-        'obstaculos': [(180, 160), (200, 160), (220, 160),
-                       (400, 300), (420, 300), (440, 300),
-                       (300, 220), (320, 220), (340, 220)]
+        "nome": "Oceano Elétrico",
+        "pontuacao_minima": 24,
+        "velocidade": 9,
+        "cores_maca": [(30, 220, 255), (50, 110, 255), (180, 80, 255)],
+        "cor_obstaculo": (40, 120, 210),
+        "obstaculos": [
+            (180, 160),
+            (200, 160),
+            (220, 160),
+            (400, 300),
+            (420, 300),
+            (440, 300),
+            (300, 220),
+            (320, 220),
+            (340, 220),
+        ],
     },
     {
-        'nome': 'Caos Cromático',
-        'pontuacao_minima': 40,
-        'velocidade': 12,
-        'cores_maca': [(255, 40, 40), (40, 255, 80), (40, 120, 255),
-                       (255, 230, 30), (220, 50, 255), (30, 255, 240)],
-        'cor_obstaculo': (210, 60, 210),
-        'obstaculos': [(160, 140), (160, 160), (160, 180),
-                       (460, 280), (460, 300), (460, 320),
-                       (280, 120), (300, 120), (320, 120), (340, 120),
-                       (280, 360), (300, 360), (320, 360), (340, 360)]
-    }
+        "nome": "Caos Cromático",
+        "pontuacao_minima": 40,
+        "velocidade": 12,
+        "cores_maca": [
+            (255, 40, 40),
+            (40, 255, 80),
+            (40, 120, 255),
+            (255, 230, 30),
+            (220, 50, 255),
+            (30, 255, 240),
+        ],
+        "cor_obstaculo": (210, 60, 210),
+        "obstaculos": [
+            (160, 140),
+            (160, 160),
+            (160, 180),
+            (460, 280),
+            (460, 300),
+            (460, 320),
+            (280, 120),
+            (300, 120),
+            (320, 120),
+            (340, 120),
+            (280, 360),
+            (300, 360),
+            (320, 360),
+            (340, 360),
+        ],
+    },
 ]
 
-def obter_fase(pontuacao):
-    fase = FASES[0]
-    for candidata in FASES:
-        if pontuacao >= candidata['pontuacao_minima']:
-            fase = candidata
-    return fase
 
-# Definindo uma posição aleatória livre para a maçã na tela
-def grid_random(cobra, obstaculos):
-    posicoes_ocupadas = {segmento['pos'] for segmento in cobra}
-    posicoes_ocupadas.update(obstaculos)
-    posicoes_livres = [
-        (x, y)
-        for x in range(20, 620, 20)
-        for y in range(20, 460, 20)
-        if (x, y) not in posicoes_ocupadas
-    ]
-    return random.choice(posicoes_livres)
+class Cobra:
+    def __init__(self):
+        self.raio = 10
+        self.reiniciar()
 
-# Definindo colisões
-def colisao(c1, c2):
-    return c1 == c2
+    def reiniciar(self):
+        self.segmentos = deque(
+            [{"pos": (200, 200), "cor": (255, 255, 255)}]
+        )
+        self.direcao = LEFT
 
-# Operações da fila: elementos entram no fim e saem do início
-def adicionar_ao_final(cobra, segmento):
-    cobra.append(segmento)
+    @property
+    def cabeca(self):
+        return self.segmentos[0]
 
-def retirar_do_inicio(cobra):
-    return cobra.popleft()
+    def posicoes(self):
+        return {segmento["pos"] for segmento in self.segmentos}
 
-def descrever_efeito_maca(cobra, maca_cor):
-    if cobra[0]['cor'] != maca_cor:
-        return "Adicionar no fim (+2 pontos)"
-    if len(cobra) > 1:
-        return "Retirar do início (-1 ponto)"
-    return "Sem efeito: tamanho mínimo"
+    def mudar_direcao(self, nova_direcao):
+        direcoes_opostas = {
+            UP: DOWN,
+            DOWN: UP,
+            LEFT: RIGHT,
+            RIGHT: LEFT,
+        }
+        if nova_direcao != direcoes_opostas[self.direcao]:
+            self.direcao = nova_direcao
 
-# Criando a cobra
-cobra = deque([{'pos': (200, 200), 'cor': (255, 255, 255)}])
-raio_cobra = 10
+    def adicionar_ao_final(self, cor):
+        novo_segmento = {"pos": self.segmentos[-1]["pos"], "cor": cor}
+        self.segmentos.append(novo_segmento)
 
-# Definindo a fase inicial
-fase_atual = obter_fase(0)
-obstaculos = list(fase_atual['obstaculos'])
+    def retirar_do_inicio(self):
+        if len(self.segmentos) > 1:
+            return self.segmentos.popleft()
+        return None
 
-# Criando a maçã
-maca_pos = grid_random(cobra, obstaculos)
-raio_maca = 10
-maca_cor = random.choice(fase_atual['cores_maca'])
+    def mover(self):
+        for indice in range(len(self.segmentos) - 1, 0, -1):
+            self.segmentos[indice]["pos"] = self.segmentos[indice - 1]["pos"]
 
-# Iniciando a cobra se movimentando para a esquerda
-direcao = LEFT
+        x, y = self.cabeca["pos"]
+        deslocamentos = {
+            UP: (0, -TAMANHO_CELULA),
+            DOWN: (0, TAMANHO_CELULA),
+            RIGHT: (TAMANHO_CELULA, 0),
+            LEFT: (-TAMANHO_CELULA, 0),
+        }
+        dx, dy = deslocamentos[self.direcao]
+        self.cabeca["pos"] = (x + dx, y + dy)
 
-# Definindo a velocidade do jogo
-clock = pygame.time.Clock()   
+    def colidiu_com_corpo(self):
+        posicao_cabeca = self.cabeca["pos"]
+        return any(
+            segmento["pos"] == posicao_cabeca
+            for segmento in list(self.segmentos)[1:]
+        )
 
-# Pontuação e recorde
-pontuacao = 0
-recorde = 0
-fonte = pygame.font.SysFont("lexend", 24)
-fonte_titulo = pygame.font.SysFont("lexend", 48)
-CAMINHO_RECORDE = Path(__file__).resolve().parent.parent / "recorde.txt"
+    def colidiu_com_borda(self):
+        x, y = self.cabeca["pos"]
+        return x < 0 or x >= LARGURA or y < 0 or y >= ALTURA
 
-# Estado do jogo
-game_over = False
-menu_ativo = True
-pausado = False
+    def desenhar(self, tela):
+        for segmento in self.segmentos:
+            pygame.draw.circle(
+                tela, segmento["cor"], segmento["pos"], self.raio
+            )
 
-# Carregando o recorde do arquivo
-try:
-    with CAMINHO_RECORDE.open("r", encoding="utf-8") as arquivo:
-        recorde = int(arquivo.read())
-except FileNotFoundError:
-    pass
 
-def encerrar_jogo():
-    with CAMINHO_RECORDE.open("w", encoding="utf-8") as arquivo:
-        arquivo.write(str(recorde))
-    pygame.quit()
-    sys.exit()
+class Maca:
+    def __init__(self):
+        self.raio = 10
+        self.posicao = (0, 0)
+        self.cor = (255, 0, 0)
 
-# Função para desenhar círculos na tela
-def desenhar_circulo(posicao, raio, cor):
-    pygame.draw.circle(tela, cor, posicao, raio)
-
-# Loop principal
-while True:
-    nova_fase = obter_fase(pontuacao)
-    if nova_fase is not fase_atual:
-        fase_atual = nova_fase
-        posicoes_cobra = {segmento['pos'] for segmento in cobra}
-        obstaculos = [
-            posicao for posicao in fase_atual['obstaculos']
-            if posicao not in posicoes_cobra
+    def gerar(self, cobra, obstaculos, cores):
+        posicoes_ocupadas = cobra.posicoes().union(obstaculos)
+        posicoes_livres = [
+            (x, y)
+            for x in range(20, 620, TAMANHO_CELULA)
+            for y in range(20, 460, TAMANHO_CELULA)
+            if (x, y) not in posicoes_ocupadas
         ]
-        maca_pos = grid_random(cobra, obstaculos)
-        maca_cor = random.choice(fase_atual['cores_maca'])
+        self.posicao = random.choice(posicoes_livres)
+        self.cor = random.choice(cores)
 
-    clock.tick(fase_atual['velocidade'])
+    def descrever_efeito(self, cobra):
+        if cobra.cabeca["cor"] != self.cor:
+            return "Adicionar no fim (+2 pontos)"
+        if len(cobra.segmentos) > 1:
+            return "Retirar do início (-1 ponto)"
+        return "Sem efeito: tamanho mínimo"
 
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            encerrar_jogo()
+    def desenhar(self, tela):
+        pygame.draw.circle(tela, self.cor, self.posicao, self.raio)
 
-        if event.type == KEYDOWN:
-            if event.key in (K_q, K_ESCAPE):
-                encerrar_jogo()
 
-            if menu_ativo:
-                if event.key in (K_RETURN, K_SPACE):
-                    menu_ativo = False
+class Jogo:
+    def __init__(self):
+        pygame.init()
+        self.tela = pygame.display.set_mode((LARGURA, ALTURA))
+        pygame.display.set_caption("Snake Game")
+        self.clock = pygame.time.Clock()
+        self.fonte = pygame.font.SysFont("lexend", 24)
+        self.fonte_titulo = pygame.font.SysFont("lexend", 48)
+
+        self.caminho_recorde = (
+            Path(__file__).resolve().parent.parent / "recorde.txt"
+        )
+        self.recorde = self.carregar_recorde()
+        self.menu_ativo = True
+        self.pausado = False
+        self.game_over = False
+        self.reiniciar()
+
+    def carregar_recorde(self):
+        try:
+            return int(self.caminho_recorde.read_text(encoding="utf-8"))
+        except (FileNotFoundError, ValueError):
+            return 0
+
+    def salvar_recorde(self):
+        self.caminho_recorde.write_text(str(self.recorde), encoding="utf-8")
+
+    def obter_fase(self):
+        fase = FASES[0]
+        for candidata in FASES:
+            if self.pontuacao >= candidata["pontuacao_minima"]:
+                fase = candidata
+        return fase
+
+    def configurar_fase(self):
+        nova_fase = self.obter_fase()
+        mudou_de_fase = nova_fase is not self.fase_atual
+        if mudou_de_fase:
+            self.fase_atual = nova_fase
+            posicoes_cobra = self.cobra.posicoes()
+            self.obstaculos = [
+                posicao
+                for posicao in self.fase_atual["obstaculos"]
+                if posicao not in posicoes_cobra
+            ]
+        return mudou_de_fase
+
+    def reiniciar(self):
+        self.cobra = Cobra()
+        self.maca = Maca()
+        self.pontuacao = 0
+        self.fase_atual = FASES[0]
+        self.obstaculos = list(self.fase_atual["obstaculos"])
+        self.maca.gerar(
+            self.cobra, self.obstaculos, self.fase_atual["cores_maca"]
+        )
+        self.pausado = False
+        self.game_over = False
+
+    def encerrar(self):
+        self.salvar_recorde()
+        pygame.quit()
+        sys.exit()
+
+    def processar_eventos(self):
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                self.encerrar()
+
+            if event.type != KEYDOWN:
                 continue
 
-            if game_over:
+            if event.key in (K_q, K_ESCAPE):
+                self.encerrar()
+
+            if self.menu_ativo:
+                if event.key in (K_RETURN, K_SPACE):
+                    self.menu_ativo = False
+                continue
+
+            if self.game_over:
                 if event.key == K_r:
-                    # Reiniciando o jogo
-                    cobra = deque([{'pos': (200, 200), 'cor': (255, 255, 255)}])
-                    fase_atual = obter_fase(0)
-                    obstaculos = list(fase_atual['obstaculos'])
-                    maca_pos = grid_random(cobra, obstaculos)
-                    maca_cor = random.choice(fase_atual['cores_maca'])
-                    direcao = LEFT
-                    pontuacao = 0
-                    pausado = False
-                    game_over = False
+                    self.reiniciar()
                 continue
 
             if event.key == K_p:
-                pausado = not pausado
+                self.pausado = not self.pausado
                 continue
 
-            # Controle de posição
-            if not pausado and event.key == K_UP and direcao != DOWN:
-                direcao = UP
-            elif not pausado and event.key == K_DOWN and direcao != UP:
-                direcao = DOWN
-            elif not pausado and event.key == K_RIGHT and direcao != LEFT:
-                direcao = RIGHT
-            elif not pausado and event.key == K_LEFT and direcao != RIGHT:
-                direcao = LEFT
+            if self.pausado:
+                continue
 
-    if not menu_ativo and not pausado and not game_over:
-        # Testando a colisão com o próprio corpo
-        for i in range(1, len(cobra)):
-            if colisao(cobra[0]['pos'], cobra[i]['pos']):
-                game_over = True
+            controles = {
+                K_UP: UP,
+                K_DOWN: DOWN,
+                K_RIGHT: RIGHT,
+                K_LEFT: LEFT,
+            }
+            if event.key in controles:
+                self.cobra.mudar_direcao(controles[event.key])
 
-        # Testando a colisão com a borda da tela
-        if cobra[0]['pos'][0] < 0 or cobra[0]['pos'][0] >= 640 or cobra[0]['pos'][1] < 0 or cobra[0]['pos'][1] >= 480:
-            game_over = True
+    def atualizar(self):
+        if self.menu_ativo or self.pausado or self.game_over:
+            return
 
-        # Testando a colisão com os obstáculos da fase
-        if cobra[0]['pos'] in obstaculos:
-            game_over = True
+        self.cobra.mover()
+        if (
+            self.cobra.colidiu_com_corpo()
+            or self.cobra.colidiu_com_borda()
+            or self.cobra.cabeca["pos"] in self.obstaculos
+        ):
+            self.game_over = True
+            return
 
-        if colisao(cobra[0]['pos'], maca_pos):
-            maca_pos = grid_random(cobra, obstaculos)
-
-            if cobra[0]['cor'] == maca_cor:
-                if len(cobra) > 1:
-                    retirar_do_inicio(cobra)
-                    pontuacao -= 1
-                    print("Cobra atualizada com decréscimo:", cobra)
+        if self.cobra.cabeca["pos"] == self.maca.posicao:
+            if self.cobra.cabeca["cor"] == self.maca.cor:
+                if self.cobra.retirar_do_inicio() is not None:
+                    self.pontuacao -= 1
             else:
-                pontuacao += 2
-                novo_segmento = {'pos': cobra[-1]['pos'], 'cor': maca_cor}
-                adicionar_ao_final(cobra, novo_segmento)
-                print("Cobra atualizada com acréscimo:", cobra)
-            maca_cor = random.choice(fase_atual['cores_maca'])
+                self.cobra.adicionar_ao_final(self.maca.cor)
+                self.pontuacao += 2
 
-        # Movendo o corpo da cobra
-        for i in range(len(cobra) - 1, 0, -1):
-            cobra[i]['pos'] = cobra[i - 1]['pos']
+            self.configurar_fase()
+            self.maca.gerar(
+                self.cobra,
+                self.obstaculos,
+                self.fase_atual["cores_maca"],
+            )
 
-        # Atualizando a cobra com base na posição atual
-        if direcao == UP:
-            cobra[0]['pos'] = (cobra[0]['pos'][0], cobra[0]['pos'][1] - 20)
-        if direcao == DOWN:
-            cobra[0]['pos'] = (cobra[0]['pos'][0], cobra[0]['pos'][1] + 20)
-        if direcao == RIGHT:
-            cobra[0]['pos'] = (cobra[0]['pos'][0] + 20, cobra[0]['pos'][1])
-        if direcao == LEFT:
-            cobra[0]['pos'] = (cobra[0]['pos'][0] - 20, cobra[0]['pos'][1])
+        if self.pontuacao > self.recorde:
+            self.recorde = self.pontuacao
+            self.salvar_recorde()
 
-    # Atualizando o recorde
-    if pontuacao > recorde:
-        recorde = pontuacao
-        with CAMINHO_RECORDE.open("w", encoding="utf-8") as arquivo:
-            arquivo.write(str(recorde))
-
-    # Apresentando na tela
-    tela.fill((0, 0, 0))
-
-    if menu_ativo:
-        titulo = fonte_titulo.render("SNAKE COLORIDO", True, (80, 255, 180))
-        iniciar = fonte.render("Enter ou Espaço: iniciar", True, (255, 255, 255))
-        sair = fonte.render("Q ou Esc: sair", True, (255, 255, 255))
-        tela.blit(titulo, titulo.get_rect(center=(320, 170)))
-        tela.blit(iniciar, iniciar.get_rect(center=(320, 250)))
-        tela.blit(sair, sair.get_rect(center=(320, 290)))
-        pygame.display.update()
-        continue
-
-    desenhar_circulo(maca_pos, raio_maca, maca_cor)
-
-    for obstaculo in obstaculos:
-        pygame.draw.rect(
-            tela,
-            fase_atual['cor_obstaculo'],
-            (obstaculo[0] - 10, obstaculo[1] - 10, 20, 20)
+    def desenhar_menu(self):
+        titulo = self.fonte_titulo.render(
+            "SNAKE COLORIDO", True, (80, 255, 180)
         )
+        iniciar = self.fonte.render(
+            "Enter ou Espaço: iniciar", True, (255, 255, 255)
+        )
+        sair = self.fonte.render("Q ou Esc: sair", True, (255, 255, 255))
+        self.tela.blit(titulo, titulo.get_rect(center=(320, 170)))
+        self.tela.blit(iniciar, iniciar.get_rect(center=(320, 250)))
+        self.tela.blit(sair, sair.get_rect(center=(320, 290)))
 
-    for segmento in cobra:
-        desenhar_circulo(segmento['pos'], raio_cobra, segmento['cor'])
+    def desenhar_obstaculos(self):
+        for x, y in self.obstaculos:
+            pygame.draw.rect(
+                self.tela,
+                self.fase_atual["cor_obstaculo"],
+                (x - 10, y - 10, TAMANHO_CELULA, TAMANHO_CELULA),
+            )
 
-    if game_over:
-        # Exibindo a mensagem de fim de jogo
-        mensagem = fonte.render("Fim de jogo! Sua pontuação foi: " + str(pontuacao) + " pontos!", True,
-                                (255, 255, 255))
-        reiniciar = fonte.render("Pressione a tecla 'r' para reiniciar o jogo", True, (255, 255, 255))
-        sair = fonte.render("Pressione 'q' ou Esc para sair", True, (255, 255, 255))
-        tela.blit(mensagem, (160, 200))
-        tela.blit(reiniciar, (180, 240))
-        tela.blit(sair, (190, 280))
+    def desenhar_painel(self):
+        textos = [
+            ("Pontuação: " + str(self.pontuacao), (10, 10)),
+            ("Recorde: " + str(self.recorde), (10, 40)),
+            ("Fase: " + self.fase_atual["nome"], (250, 10)),
+            (
+                "Velocidade: " + str(self.fase_atual["velocidade"]),
+                (250, 40),
+            ),
+            (
+                "Próxima maçã: " + self.maca.descrever_efeito(self.cobra),
+                (10, 70),
+            ),
+        ]
+        for conteudo, posicao in textos:
+            texto = self.fonte.render(conteudo, True, (255, 255, 255))
+            self.tela.blit(texto, posicao)
 
-    if pausado:
-        titulo_pausa = fonte_titulo.render("PAUSADO", True, (255, 220, 40))
-        continuar = fonte.render("P: continuar | Q ou Esc: sair", True, (255, 255, 255))
-        tela.blit(titulo_pausa, titulo_pausa.get_rect(center=(320, 210)))
-        tela.blit(continuar, continuar.get_rect(center=(320, 260)))
+    def desenhar_fim_de_jogo(self):
+        mensagem = self.fonte.render(
+            f"Fim de jogo! Sua pontuação foi: {self.pontuacao} pontos!",
+            True,
+            (255, 255, 255),
+        )
+        reiniciar = self.fonte.render(
+            "Pressione R para reiniciar", True, (255, 255, 255)
+        )
+        sair = self.fonte.render(
+            "Pressione Q ou Esc para sair", True, (255, 255, 255)
+        )
+        self.tela.blit(mensagem, mensagem.get_rect(center=(320, 200)))
+        self.tela.blit(reiniciar, reiniciar.get_rect(center=(320, 240)))
+        self.tela.blit(sair, sair.get_rect(center=(320, 280)))
 
-    # Exibindo a pontuação e o recorde na tela
-    texto_pontuacao = fonte.render("Pontuação: " + str(pontuacao), True, (255, 255, 255))
-    texto_recorde = fonte.render("Recorde: " + str(recorde), True, (255, 255, 255))
-    texto_fase = fonte.render("Fase: " + fase_atual['nome'], True, (255, 255, 255))
-    texto_velocidade = fonte.render(
-        "Velocidade: " + str(fase_atual['velocidade']), True, (255, 255, 255)
-    )
-    texto_efeito = fonte.render(
-        "Próxima maçã: " + descrever_efeito_maca(cobra, maca_cor),
-        True,
-        (255, 255, 255)
-    )
-    tela.blit(texto_pontuacao, (10, 10))
-    tela.blit(texto_recorde, (10, 40))
-    tela.blit(texto_fase, (250, 10))
-    tela.blit(texto_velocidade, (250, 40))
-    tela.blit(texto_efeito, (10, 70))
+    def desenhar_pausa(self):
+        titulo = self.fonte_titulo.render("PAUSADO", True, (255, 220, 40))
+        continuar = self.fonte.render(
+            "P: continuar | Q ou Esc: sair", True, (255, 255, 255)
+        )
+        self.tela.blit(titulo, titulo.get_rect(center=(320, 210)))
+        self.tela.blit(continuar, continuar.get_rect(center=(320, 260)))
 
-    # Atualizando a tela
-    pygame.display.update()
+    def desenhar(self):
+        self.tela.fill((0, 0, 0))
+
+        if self.menu_ativo:
+            self.desenhar_menu()
+        else:
+            self.maca.desenhar(self.tela)
+            self.desenhar_obstaculos()
+            self.cobra.desenhar(self.tela)
+            self.desenhar_painel()
+
+            if self.game_over:
+                self.desenhar_fim_de_jogo()
+            elif self.pausado:
+                self.desenhar_pausa()
+
+        pygame.display.update()
+
+    def executar(self):
+        while True:
+            self.clock.tick(self.fase_atual["velocidade"])
+            self.processar_eventos()
+            self.atualizar()
+            self.desenhar()
+
+
+if __name__ == "__main__":
+    Jogo().executar()
