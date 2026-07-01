@@ -64,6 +64,17 @@ python "Snake Game/Snake_Circle.py"
 
 No Linux ou macOS, caso necessário, use `python3` no lugar de `python`.
 
+## Testes
+
+Depois de instalar as dependências, execute a suíte com:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Os testes verificam pontuação, comportamento FIFO, colisões com bordas, corpo
+e obstáculos, além dos limites de pontuação da progressão de dificuldade.
+
 ## Controles
 
 | Tecla | Ação |
@@ -126,6 +137,8 @@ snakegame/
 ├── README.md
 ├── recorde.txt
 ├── requirements.txt
+├── tests/
+│   └── test_snake_game.py
 └── Snake Game/
     └── Snake_Circle.py
 ```
@@ -134,4 +147,4 @@ O arquivo `recorde.txt` deve conter somente um número inteiro.
 
 ## Possíveis melhorias
 
-- Adicionar sons e testes automatizados.
+- Adicionar sons.
