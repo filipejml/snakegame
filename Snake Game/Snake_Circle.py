@@ -17,13 +17,13 @@ RIGHT = 1
 DOWN = 2
 LEFT = 3
 
-#definindo posições aleatórias para a maçã na tela
+# Definindo posições aleatórias para a maçã na tela
 def grid_random():
     x = random.randint(1, 30) * 20
     y = random.randint(1, 22) * 20
     return (x, y)
 
-#definindo colisões
+# Definindo colisões
 def colisao(c1, c2):
     return c1 == c2
 
@@ -91,7 +91,7 @@ while True:
             pygame.quit()
             sys.exit()
 
-        #controle de posião
+        # Controle de posição
         if event.type == KEYDOWN:
             if event.key == K_UP and direcao != DOWN:
                 direcao = UP
@@ -126,12 +126,12 @@ while True:
                 if len(cobra) > 1:
                     cobra.pop(0)
                     pontuacao -= 1
-                    print("Cobra atualizada com decrescimo:", cobra)
+                    print("Cobra atualizada com decréscimo:", cobra)
             else:
                 pontuacao += 2
                 novo_segmento = {'pos': cobra[-1]['pos'], 'cor': maca_cor}
                 cobra.append(novo_segmento)
-                print("Cobra atualizada com acrescimo:", cobra)
+                print("Cobra atualizada com acréscimo:", cobra)
             maca_cor = random.choice(cores_maca)
 
         # Movendo o corpo da cobra
