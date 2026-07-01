@@ -8,7 +8,8 @@ cor coletada e ganha velocidade durante a partida.
 
 - Movimento da cobra pelas setas do teclado.
 - Geração de maçãs em posições aleatórias.
-- Paletas de cores diferentes em cada fase.
+- Paletas ampliadas, com cores diferentes em cada fase, incluindo branco e
+  preto em todas elas.
 - Segmentos da cobra assumem a cor da maçã coletada.
 - Sistema de pontuação:
   - maçã com cor diferente da cabeça: adiciona 2 pontos e um segmento;
@@ -17,6 +18,8 @@ cor coletada e ganha velocidade durante a partida.
 - Quatro fases explícitas, liberadas pela pontuação.
 - Velocidade e obstáculos diferentes em cada fase.
 - Painel com fase, velocidade e efeito da próxima maçã.
+- Visual temático por fase, com grades, HUD translúcido e cores próprias.
+- Cobra com contorno e olhos, maçãs com brilho e obstáculos destacados.
 - Detecção de colisão com as bordas, o próprio corpo e os obstáculos.
 - Menu inicial, pausa e opção de sair pelo teclado.
 - Tela de fim de jogo e reinício pela tecla `R`.

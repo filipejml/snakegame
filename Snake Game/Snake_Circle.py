@@ -23,18 +23,31 @@ from pygame.locals import (
 LARGURA = 640
 ALTURA = 480
 TAMANHO_CELULA = 20
+ALTURA_HUD = 100
 
 UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
 
+# As cores usam o formato RGB: (vermelho, verde, azul), de 0 a 255.
 FASES = [
     {
         "nome": "Jardim Neon",
         "pontuacao_minima": 0,
         "velocidade": 5,
-        "cores_maca": [(255, 80, 80), (80, 255, 140), (80, 180, 255)],
+        "cores_maca": [
+            (255, 80, 80),
+            (80, 255, 140),
+            (80, 180, 255),
+            (255, 130, 210),
+            (170, 255, 80),
+            (255, 190, 80),
+            (255, 255, 255),  # Branco
+            (0, 0, 0),        # Preto
+        ],
+        "cor_fundo": (8, 18, 24),
+        "cor_grade": (18, 45, 50),
         "cor_obstaculo": (90, 90, 120),
         "obstaculos": [],
     },
@@ -42,7 +55,18 @@ FASES = [
         "nome": "Labirinto Solar",
         "pontuacao_minima": 10,
         "velocidade": 7,
-        "cores_maca": [(255, 220, 40), (255, 130, 30), (255, 70, 160)],
+        "cores_maca": [
+            (255, 220, 40),
+            (255, 130, 30),
+            (255, 70, 160),
+            (255, 75, 45),
+            (245, 180, 60),
+            (255, 110, 100),
+            (255, 255, 255),  # Branco
+            (0, 0, 0),        # Preto
+        ],
+        "cor_fundo": (30, 17, 8),
+        "cor_grade": (65, 38, 15),
         "cor_obstaculo": (255, 150, 40),
         "obstaculos": [
             (320, 140),
@@ -57,7 +81,18 @@ FASES = [
         "nome": "Oceano Elétrico",
         "pontuacao_minima": 24,
         "velocidade": 9,
-        "cores_maca": [(30, 220, 255), (50, 110, 255), (180, 80, 255)],
+        "cores_maca": [
+            (30, 220, 255),
+            (50, 110, 255),
+            (180, 80, 255),
+            (40, 255, 210),
+            (120, 150, 255),
+            (90, 80, 255),
+            (255, 255, 255),  # Branco
+            (0, 0, 0),        # Preto
+        ],
+        "cor_fundo": (6, 14, 35),
+        "cor_grade": (14, 38, 75),
         "cor_obstaculo": (40, 120, 210),
         "obstaculos": [
             (180, 160),
@@ -82,7 +117,15 @@ FASES = [
             (255, 230, 30),
             (220, 50, 255),
             (30, 255, 240),
+            (255, 130, 20),
+            (130, 255, 30),
+            (255, 80, 180),
+            (150, 100, 255),
+            (255, 255, 255),  # Branco
+            (0, 0, 0),        # Preto
         ],
+        "cor_fundo": (27, 7, 35),
+        "cor_grade": (63, 18, 76),
         "cor_obstaculo": (210, 60, 210),
         "obstaculos": [
             (160, 140),
@@ -164,13 +207,36 @@ class Cobra:
 
     def colidiu_com_borda(self):
         x, y = self.cabeca["pos"]
-        return x < 0 or x >= LARGURA or y < 0 or y >= ALTURA
+        return (
+            x < 0
+            or x >= LARGURA
+            or y < ALTURA_HUD
+            or y >= ALTURA
+        )
 
     def desenhar(self, tela):
-        for segmento in self.segmentos:
+        for indice, segmento in enumerate(self.segmentos):
             pygame.draw.circle(
-                tela, segmento["cor"], segmento["pos"], self.raio
+                tela, (15, 15, 22), segmento["pos"], self.raio + 2
             )
+            pygame.draw.circle(
+                tela, segmento["cor"], segmento["pos"], self.raio - 1
+            )
+
+            if indice == 0:
+                self.desenhar_olhos(tela)
+
+    def desenhar_olhos(self, tela):
+        x, y = self.cabeca["pos"]
+        posicoes = {
+            UP: [(x - 4, y - 4), (x + 4, y - 4)],
+            DOWN: [(x - 4, y + 4), (x + 4, y + 4)],
+            LEFT: [(x - 4, y - 4), (x - 4, y + 4)],
+            RIGHT: [(x + 4, y - 4), (x + 4, y + 4)],
+        }
+        for posicao in posicoes[self.direcao]:
+            pygame.draw.circle(tela, (255, 255, 255), posicao, 3)
+            pygame.draw.circle(tela, (20, 20, 25), posicao, 1)
 
 
 class Maca:
@@ -184,7 +250,7 @@ class Maca:
         posicoes_livres = [
             (x, y)
             for x in range(20, 620, TAMANHO_CELULA)
-            for y in range(20, 460, TAMANHO_CELULA)
+            for y in range(120, 460, TAMANHO_CELULA)
             if (x, y) not in posicoes_ocupadas
         ]
         self.posicao = random.choice(posicoes_livres)
@@ -198,7 +264,17 @@ class Maca:
         return "Sem efeito: tamanho mínimo"
 
     def desenhar(self, tela):
-        pygame.draw.circle(tela, self.cor, self.posicao, self.raio)
+        brilho = tuple(min(255, componente + 55) for componente in self.cor)
+        sombra = tuple(max(0, componente - 80) for componente in self.cor)
+        cor_contorno = (180, 180, 190) if self.cor == (0, 0, 0) else sombra
+        pygame.draw.circle(tela, cor_contorno, self.posicao, self.raio + 4)
+        pygame.draw.circle(tela, self.cor, self.posicao, self.raio + 1)
+        pygame.draw.circle(
+            tela,
+            brilho,
+            (self.posicao[0] - 3, self.posicao[1] - 3),
+            3,
+        )
 
 
 class Jogo:
@@ -345,6 +421,15 @@ class Jogo:
         self.atualizar_recorde()
 
     def desenhar_menu(self):
+        for x, y, cor in [
+            (110, 125, (255, 80, 140)),
+            (530, 150, (80, 180, 255)),
+            (150, 355, (80, 255, 140)),
+            (500, 350, (255, 220, 40)),
+        ]:
+            pygame.draw.circle(self.tela, cor, (x, y), 12)
+            pygame.draw.circle(self.tela, (255, 255, 255), (x - 3, y - 3), 3)
+
         titulo = self.fonte_titulo.render(
             "SNAKE COLORIDO", True, (80, 255, 180)
         )
@@ -358,13 +443,41 @@ class Jogo:
 
     def desenhar_obstaculos(self):
         for x, y in self.obstaculos:
+            sombra = pygame.Rect(
+                x - 9, y - 7, TAMANHO_CELULA, TAMANHO_CELULA
+            )
+            bloco = pygame.Rect(
+                x - 10, y - 10, TAMANHO_CELULA, TAMANHO_CELULA
+            )
+            pygame.draw.rect(
+                self.tela, (12, 12, 20), sombra, border_radius=5
+            )
             pygame.draw.rect(
                 self.tela,
                 self.fase_atual["cor_obstaculo"],
-                (x - 10, y - 10, TAMANHO_CELULA, TAMANHO_CELULA),
+                bloco,
+                border_radius=5,
+            )
+            pygame.draw.rect(
+                self.tela,
+                (255, 255, 255),
+                bloco,
+                width=1,
+                border_radius=5,
             )
 
     def desenhar_painel(self):
+        painel = pygame.Surface((LARGURA, ALTURA_HUD), pygame.SRCALPHA)
+        painel.fill((3, 5, 12, 205))
+        self.tela.blit(painel, (0, 0))
+        pygame.draw.line(
+            self.tela,
+            self.fase_atual["cor_obstaculo"],
+            (0, ALTURA_HUD - 1),
+            (LARGURA, ALTURA_HUD - 1),
+            2,
+        )
+
         textos = [
             ("Pontuação: " + str(self.pontuacao), (10, 10)),
             ("Recorde: " + str(self.recorde), (10, 40)),
@@ -383,6 +496,7 @@ class Jogo:
             self.tela.blit(texto, posicao)
 
     def desenhar_fim_de_jogo(self):
+        self.desenhar_overlay()
         mensagem = self.fonte.render(
             f"Fim de jogo! Sua pontuação foi: {self.pontuacao} pontos!",
             True,
@@ -399,6 +513,7 @@ class Jogo:
         self.tela.blit(sair, sair.get_rect(center=(320, 280)))
 
     def desenhar_pausa(self):
+        self.desenhar_overlay()
         titulo = self.fonte_titulo.render("PAUSADO", True, (255, 220, 40))
         continuar = self.fonte.render(
             "P: continuar | Q ou Esc: sair", True, (255, 255, 255)
@@ -406,8 +521,21 @@ class Jogo:
         self.tela.blit(titulo, titulo.get_rect(center=(320, 210)))
         self.tela.blit(continuar, continuar.get_rect(center=(320, 260)))
 
+    def desenhar_overlay(self):
+        camada = pygame.Surface((LARGURA, ALTURA), pygame.SRCALPHA)
+        camada.fill((0, 0, 0, 175))
+        self.tela.blit(camada, (0, 0))
+
+    def desenhar_fundo(self):
+        self.tela.fill(self.fase_atual["cor_fundo"])
+        cor_grade = self.fase_atual["cor_grade"]
+        for x in range(0, LARGURA, TAMANHO_CELULA):
+            pygame.draw.line(self.tela, cor_grade, (x, 0), (x, ALTURA))
+        for y in range(0, ALTURA, TAMANHO_CELULA):
+            pygame.draw.line(self.tela, cor_grade, (0, y), (LARGURA, y))
+
     def desenhar(self):
-        self.tela.fill((0, 0, 0))
+        self.desenhar_fundo()
 
         if self.menu_ativo:
             self.desenhar_menu()
