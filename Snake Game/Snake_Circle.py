@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 import random
+import sys
 from random import randint
 
 # Inicializando o pygame
@@ -88,6 +89,7 @@ while True:
             with open("recorde.txt", "w") as arquivo:
                 arquivo.write(str(recorde))
             pygame.quit()
+            sys.exit()
 
         #controle de posião
         if event.type == KEYDOWN:
