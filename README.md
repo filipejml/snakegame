@@ -18,6 +18,7 @@ cor coletada e ganha velocidade durante a partida.
 - Velocidade e obstáculos diferentes em cada fase.
 - Painel com fase, velocidade e efeito da próxima maçã.
 - Detecção de colisão com as bordas, o próprio corpo e os obstáculos.
+- Menu inicial, pausa e opção de sair pelo teclado.
 - Tela de fim de jogo e reinício pela tecla `R`.
 - Recorde salvo localmente no arquivo `recorde.txt`.
 
@@ -71,7 +72,10 @@ No Linux ou macOS, caso necessário, use `python3` no lugar de `python`.
 | Seta para baixo | Move para baixo |
 | Seta para a esquerda | Move para a esquerda |
 | Seta para a direita | Move para a direita |
+| `Enter` ou `Espaço` | Inicia a partida pelo menu |
+| `P` | Pausa ou continua a partida |
 | `R` | Reinicia depois do fim da partida |
+| `Q` ou `Esc` | Salva o recorde e encerra o jogo |
 
 A cobra não pode inverter diretamente para a direção oposta.
 

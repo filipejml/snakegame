@@ -121,10 +121,13 @@ clock = pygame.time.Clock()
 pontuacao = 0
 recorde = 0
 fonte = pygame.font.SysFont("lexend", 24)
+fonte_titulo = pygame.font.SysFont("lexend", 48)
 CAMINHO_RECORDE = Path(__file__).resolve().parent.parent / "recorde.txt"
 
 # Estado do jogo
 game_over = False
+menu_ativo = True
+pausado = False
 
 # Carregando o recorde do arquivo
 try:
@@ -132,6 +135,12 @@ try:
         recorde = int(arquivo.read())
 except FileNotFoundError:
     pass
+
+def encerrar_jogo():
+    with CAMINHO_RECORDE.open("w", encoding="utf-8") as arquivo:
+        arquivo.write(str(recorde))
+    pygame.quit()
+    sys.exit()
 
 # Função para desenhar círculos na tela
 def desenhar_circulo(posicao, raio, cor):
@@ -154,35 +163,46 @@ while True:
 
     for event in pygame.event.get():
         if event.type == QUIT:
-            # Salvando o recorde no arquivo antes de sair
-            with CAMINHO_RECORDE.open("w", encoding="utf-8") as arquivo:
-                arquivo.write(str(recorde))
-            pygame.quit()
-            sys.exit()
+            encerrar_jogo()
 
-        # Controle de posição
         if event.type == KEYDOWN:
-            if event.key == K_UP and direcao != DOWN:
+            if event.key in (K_q, K_ESCAPE):
+                encerrar_jogo()
+
+            if menu_ativo:
+                if event.key in (K_RETURN, K_SPACE):
+                    menu_ativo = False
+                continue
+
+            if game_over:
+                if event.key == K_r:
+                    # Reiniciando o jogo
+                    cobra = deque([{'pos': (200, 200), 'cor': (255, 255, 255)}])
+                    fase_atual = obter_fase(0)
+                    obstaculos = list(fase_atual['obstaculos'])
+                    maca_pos = grid_random(cobra, obstaculos)
+                    maca_cor = random.choice(fase_atual['cores_maca'])
+                    direcao = LEFT
+                    pontuacao = 0
+                    pausado = False
+                    game_over = False
+                continue
+
+            if event.key == K_p:
+                pausado = not pausado
+                continue
+
+            # Controle de posição
+            if not pausado and event.key == K_UP and direcao != DOWN:
                 direcao = UP
-            elif event.key == K_DOWN and direcao != UP:
+            elif not pausado and event.key == K_DOWN and direcao != UP:
                 direcao = DOWN
-            elif event.key == K_RIGHT and direcao != LEFT:
+            elif not pausado and event.key == K_RIGHT and direcao != LEFT:
                 direcao = RIGHT
-            elif event.key == K_LEFT and direcao != RIGHT:
+            elif not pausado and event.key == K_LEFT and direcao != RIGHT:
                 direcao = LEFT
 
-            if game_over and event.key == K_r:
-                # Reiniciando o jogo
-                cobra = deque([{'pos': (200, 200), 'cor': (255, 255, 255)}])
-                fase_atual = obter_fase(0)
-                obstaculos = list(fase_atual['obstaculos'])
-                maca_pos = grid_random(cobra, obstaculos)
-                maca_cor = random.choice(fase_atual['cores_maca'])
-                direcao = LEFT
-                pontuacao = 0
-                game_over = False
-
-    if not game_over:
+    if not menu_ativo and not pausado and not game_over:
         # Testando a colisão com o próprio corpo
         for i in range(1, len(cobra)):
             if colisao(cobra[0]['pos'], cobra[i]['pos']):
@@ -233,6 +253,17 @@ while True:
 
     # Apresentando na tela
     tela.fill((0, 0, 0))
+
+    if menu_ativo:
+        titulo = fonte_titulo.render("SNAKE COLORIDO", True, (80, 255, 180))
+        iniciar = fonte.render("Enter ou Espaço: iniciar", True, (255, 255, 255))
+        sair = fonte.render("Q ou Esc: sair", True, (255, 255, 255))
+        tela.blit(titulo, titulo.get_rect(center=(320, 170)))
+        tela.blit(iniciar, iniciar.get_rect(center=(320, 250)))
+        tela.blit(sair, sair.get_rect(center=(320, 290)))
+        pygame.display.update()
+        continue
+
     desenhar_circulo(maca_pos, raio_maca, maca_cor)
 
     for obstaculo in obstaculos:
@@ -250,8 +281,16 @@ while True:
         mensagem = fonte.render("Fim de jogo! Sua pontuação foi: " + str(pontuacao) + " pontos!", True,
                                 (255, 255, 255))
         reiniciar = fonte.render("Pressione a tecla 'r' para reiniciar o jogo", True, (255, 255, 255))
+        sair = fonte.render("Pressione 'q' ou Esc para sair", True, (255, 255, 255))
         tela.blit(mensagem, (160, 200))
         tela.blit(reiniciar, (180, 240))
+        tela.blit(sair, (190, 280))
+
+    if pausado:
+        titulo_pausa = fonte_titulo.render("PAUSADO", True, (255, 220, 40))
+        continuar = fonte.render("P: continuar | Q ou Esc: sair", True, (255, 255, 255))
+        tela.blit(titulo_pausa, titulo_pausa.get_rect(center=(320, 210)))
+        tela.blit(continuar, continuar.get_rect(center=(320, 260)))
 
     # Exibindo a pontuação e o recorde na tela
     texto_pontuacao = fonte.render("Pontuação: " + str(pontuacao), True, (255, 255, 255))
