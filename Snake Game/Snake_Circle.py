@@ -17,11 +17,16 @@ RIGHT = 1
 DOWN = 2
 LEFT = 3
 
-# Definindo posições aleatórias para a maçã na tela
-def grid_random():
-    x = random.randint(1, 30) * 20
-    y = random.randint(1, 22) * 20
-    return (x, y)
+# Definindo uma posição aleatória livre para a maçã na tela
+def grid_random(cobra):
+    posicoes_ocupadas = {segmento['pos'] for segmento in cobra}
+    posicoes_livres = [
+        (x, y)
+        for x in range(20, 620, 20)
+        for y in range(20, 460, 20)
+        if (x, y) not in posicoes_ocupadas
+    ]
+    return random.choice(posicoes_livres)
 
 # Definindo colisões
 def colisao(c1, c2):
@@ -32,7 +37,7 @@ cobra = [{'pos': (200, 200), 'cor': (255, 255, 255)}]
 raio_cobra = 10
 
 # Criando a maçã
-maca_pos = grid_random()
+maca_pos = grid_random(cobra)
 raio_maca = 10
 cores_maca = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (255, 255, 255)]
 maca_cor = random.choice(cores_maca)
@@ -105,6 +110,7 @@ while True:
             if game_over and event.key == K_r:
                 # Reiniciando o jogo
                 cobra = [{'pos': (200, 200), 'cor': (255, 255, 255)}]
+                maca_pos = grid_random(cobra)
                 direcao = LEFT
                 pontuacao = 0
                 game_over = False
@@ -120,7 +126,7 @@ while True:
             game_over = True
 
         if colisao(cobra[0]['pos'], maca_pos):
-            maca_pos = grid_random()
+            maca_pos = grid_random(cobra)
 
             if cobra[0]['cor'] == maca_cor:
                 if len(cobra) > 1:
