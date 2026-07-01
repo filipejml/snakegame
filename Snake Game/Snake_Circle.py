@@ -159,6 +159,8 @@ while True:
     # Atualizando o recorde
     if pontuacao > recorde:
         recorde = pontuacao
+        with CAMINHO_RECORDE.open("w", encoding="utf-8") as arquivo:
+            arquivo.write(str(recorde))
 
     # Apresentando na tela
     tela.fill((0, 0, 0))

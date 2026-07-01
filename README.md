@@ -88,9 +88,9 @@ Toda a lógica principal está em `Snake Game/Snake_Circle.py`.
    se a cobra cresce ou diminui.
 7. O tamanho da cobra define a quantidade de atualizações por segundo, de 5
    até 12.
-8. Quando a pontuação supera o recorde, o valor em memória é atualizado. Ao
-   fechar o jogo, ele é gravado em `recorde.txt`. O caminho é calculado a
-   partir do local do script, independentemente da pasta de execução.
+8. Quando a pontuação supera o recorde, o novo valor é gravado imediatamente
+   em `recorde.txt`. O caminho é calculado a partir do local do script,
+   independentemente da pasta de execução.
 
 ## Estrutura do projeto
 
