@@ -79,8 +79,9 @@ Toda a lógica principal está em `Snake Game/Snake_Circle.py`.
 
 1. O Pygame inicializa uma janela de 640 × 480 pixels.
 2. A tela é organizada implicitamente em uma grade de 20 pixels.
-3. A cobra é representada por uma lista de dicionários. Cada segmento possui
-   uma posição `(x, y)` e uma cor RGB.
+3. A cobra é representada por uma `deque` de dicionários. Essa estrutura
+   implementa uma fila com inserção e remoção eficientes nas extremidades.
+   Cada segmento possui uma posição `(x, y)` e uma cor RGB.
 4. As operações FIFO ficam explícitas nas funções `adicionar_ao_final()` e
    `retirar_do_inicio()`: os segmentos entram no fim e saem do início da fila.
 5. A função `grid_random()` escolhe uma nova posição livre para a maçã.

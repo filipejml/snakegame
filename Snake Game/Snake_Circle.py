@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import random
 import sys
+from collections import deque
 from pathlib import Path
 from random import randint
 
@@ -38,10 +39,10 @@ def adicionar_ao_final(cobra, segmento):
     cobra.append(segmento)
 
 def retirar_do_inicio(cobra):
-    return cobra.pop(0)
+    return cobra.popleft()
 
 # Criando a cobra
-cobra = [{'pos': (200, 200), 'cor': (255, 255, 255)}]
+cobra = deque([{'pos': (200, 200), 'cor': (255, 255, 255)}])
 raio_cobra = 10
 
 # Criando a maçã
@@ -118,7 +119,7 @@ while True:
 
             if game_over and event.key == K_r:
                 # Reiniciando o jogo
-                cobra = [{'pos': (200, 200), 'cor': (255, 255, 255)}]
+                cobra = deque([{'pos': (200, 200), 'cor': (255, 255, 255)}])
                 maca_pos = grid_random(cobra)
                 direcao = LEFT
                 pontuacao = 0
